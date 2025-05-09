@@ -1,6 +1,9 @@
 function love.load()
+    --love.window.setMode(0, 0, {fullscreen = true})
     width = love.graphics.getWidth()
     height = love.graphics.getHeight()
+    endGameBool = false
+    pointsToScore = 7
     ----------------------------------
     starting_position_x = width/2
     starting_position_y = height/2  
@@ -8,7 +11,7 @@ function love.load()
     ball = {}
     ball.x = starting_position_x
     ball.y = starting_position_y
-    ball.vx = 1
+    ball.vx = 3
     ball.vy = 0
 -------------------------
     paddle1 = {}
@@ -17,7 +20,7 @@ function love.load()
     paddle1.score = 0
 --------------------------------
     paddle2 = {}
-    paddle2.x = 790
+    paddle2.x = width - 10
     paddle2.y = 250
     paddle2.score = 0
 -------------------------------
@@ -28,7 +31,6 @@ function love.load()
     shared.showRoundWonMessagePaddle2 = false
     shared.paddleHeight = 60
     shared.paddleWidth = 10
-
 ------------------------------
 end
 
@@ -53,13 +55,14 @@ function love.update(dt)
     --collision check paddle 2
     collisionAction(collisionCheck(ball.x,ball.y, 10,10, paddle2.x,paddle2.y, 10,60), paddle2)
 
+    end
+    
     --score updating
     pointScored()
-    end
 
-    --pauses game if you press escape or the space bar
-    gamePaused()
-  
+    --handles end of game
+    endGame(paddle1)
+    endGame(paddle2)
 
 end
 
@@ -72,20 +75,29 @@ function love.draw()
     
     love.graphics.rectangle("fill", paddle2.x, paddle2.y, 10,shared.paddleHeight)
 
-    love.graphics.print(paddle1.score,30,30,0,1,1,10,10)
+    love.graphics.print(paddle1.score,30,30)
 
-    love.graphics.print(paddle2.score,30,30,0,1,1,-745,10)
+    love.graphics.print(paddle2.score,width -30, 30)
 
-    if(showRoundWonMessagePaddle1) then 
-        love.graphics.printf("Player 1 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
+    if (not endGameBool) then
+        if(showRoundWonMessagePaddle1) then 
+            love.graphics.printf("Player 1 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
+        end
+
+        if(showRoundWonMessagePaddle2) then
+            love.graphics.printf("Player 2 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
+        end 
     end
 
-    if(showRoundWonMessagePaddle2) then
-        love.graphics.printf("Player 2 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
-    end 
+    if(endGameBool) then
+        if(paddle1.score == pointsToScore) then
+        love.graphics.printf("Player 1 WON!!!!!!" ,starting_position_x,starting_position_y + 10,150,"left")
 
+        elseif(paddle2.score == pointsToScore) then
+            love.graphics.printf("Player 2 WON!!!!!!",starting_position_x,starting_position_y + 10,150,"left")
+        end
+    end
 end
-
 
 function checkInputsPaddle1() -- checks for paddle 1 input w and s, does not let it go off screen
 
@@ -160,8 +172,8 @@ function collisionAction(collisionCheck, paddle) -- takes a bool as if its true 
 end
 
  
-function pointScored() 
-   if (ball.x == 0) then
+function pointScored() --updates points and resets the round
+   if (ball.x < 0) then
       paddle2.score = paddle2.score + 1
       ball.x = starting_position_x
       ball.y = starting_position_y
@@ -169,7 +181,7 @@ function pointScored()
       showRoundWonMessagePaddle2 = true
       ball.vy = 0
 
-    elseif (ball.x == width) then
+    elseif (ball.x > width) then
       paddle1.score = paddle1.score + 1
       ball.x = starting_position_x
       ball.y = starting_position_y
@@ -179,11 +191,23 @@ function pointScored()
    end
 end
 
-function gamePaused() -- can pause and unpause the game using spacebar and escape
-    if(love.keyboard.isDown("p")) then
+
+
+function love.keypressed(key) --when you press escape then it exits the game and when pressing p it pauses the game
+    if (key == "escape") then
+        love.event.quit()
+    end
+    if (key == "p") then
         shared.pause = not shared.pause
         showRoundWonMessagePaddle1 = false
         showRoundWonMessagePaddle2 = false
+    end
+end
+
+function endGame(paddle) 
+    if(paddle.score == 7) then
+        shared.pause = true
+        endGameBool = true 
     end
 end
 
