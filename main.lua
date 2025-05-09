@@ -26,6 +26,8 @@ function love.load()
     shared.pause = false
     shared.showRoundWonMessagePaddle1 = false
     shared.showRoundWonMessagePaddle2 = false
+    shared.paddleHeight = 60
+    shared.paddleWidth = 10
 
 ------------------------------
 end
@@ -45,11 +47,11 @@ function love.update(dt)
 
 
     --collision check paddle 1 
-    collisionAction(collisionCheck(ball.x,ball.y, 10,10, paddle1.x,paddle1.y, 10,60))
+    collisionAction(collisionCheck(ball.x,ball.y, 10,10, paddle1.x,paddle1.y, 10,60),paddle1)
 
 
     --collision check paddle 2
-    collisionAction(collisionCheck(ball.x,ball.y, 10,10, paddle2.x,paddle2.y, 10,60))
+    collisionAction(collisionCheck(ball.x,ball.y, 10,10, paddle2.x,paddle2.y, 10,60), paddle2)
 
     --score updating
     pointScored()
@@ -62,22 +64,24 @@ function love.update(dt)
 end
 
 function love.draw()
+    if(not shared.pause) then
     love.graphics.rectangle("fill", ball.x, ball.y, 10 ,10)
+    end
     
-    love.graphics.rectangle("fill", paddle1.x, paddle1.y, 10,60)
+    love.graphics.rectangle("fill", paddle1.x, paddle1.y, shared.paddleWidth,shared.paddleHeight)
     
-    love.graphics.rectangle("fill", paddle2.x, paddle2.y, 10,60)
+    love.graphics.rectangle("fill", paddle2.x, paddle2.y, 10,shared.paddleHeight)
 
     love.graphics.print(paddle1.score,30,30,0,1,1,10,10)
 
     love.graphics.print(paddle2.score,30,30,0,1,1,-745,10)
 
     if(showRoundWonMessagePaddle1) then 
-        love.graphics.printf("Player 1 scored!,press p to continue",starting_position_x,starting_position_y + 10,100,"left")
+        love.graphics.printf("Player 1 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
     end
 
     if(showRoundWonMessagePaddle2) then
-        love.graphics.printf("Player 2 scored!,press p to continue",starting_position_x,starting_position_y + 10,100,"left")
+        love.graphics.printf("Player 2 scored!,press p to continue",starting_position_x,starting_position_y + 10,150,"left")
     end 
 
 end
@@ -138,27 +142,24 @@ function basicBallMovement() -- moves the ball in the direction of the velocity
     ball.y = ball.y + ball.vy
 end
 
-function collisionAction(collisionCheck) -- takes a bool as if its true then switch ball direction on the x axis if it head or tail will implement later
+function collisionAction(collisionCheck, paddle) -- takes a bool as if its true then switch ball direction on the x axis if it head or tail will implement later
     if (collisionCheck) then
         ball.vx = -ball.vx   
+
+        if(ball.y >= paddle.y and ball.y <= paddle.y + (shared.paddleHeight / 3)) then -- top thid
+            ball.vy = -1
+
+        elseif (ball.y >= paddle.y + (2* shared.paddleHeight/3)) then --bottom third
+            ball.vy = 1
+
+        else
+            ball.vy = 0
+        end
+
     end
 end
 
-
-
-
-function colTest(col) -- testing still
-    if (collisionCheck) then
-        ball.vx = -ball.vx   
-    end
-
-    if (ball.vy == 1 or ball.vy == -1) then
-
-    end
-
-
-end
-
+ 
 function pointScored() 
    if (ball.x == 0) then
       paddle2.score = paddle2.score + 1
@@ -166,6 +167,7 @@ function pointScored()
       ball.y = starting_position_y
       shared.pause = not shared.pause
       showRoundWonMessagePaddle2 = true
+      ball.vy = 0
 
     elseif (ball.x == width) then
       paddle1.score = paddle1.score + 1
@@ -173,6 +175,7 @@ function pointScored()
       ball.y = starting_position_y
       shared.pause = not shared.pause
       showRoundWonMessagePaddle1 = true
+      ball.vy = 0
    end
 end
 
@@ -183,3 +186,5 @@ function gamePaused() -- can pause and unpause the game using spacebar and escap
         showRoundWonMessagePaddle2 = false
     end
 end
+
+
