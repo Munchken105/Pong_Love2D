@@ -23,12 +23,18 @@ function love.load()
 -------------------------------
     shared = {}
     shared.speed = 2
-    shared.pause = 0
+    shared.pause = false
+    shared.showRoundWonMessagePaddle1 = false
+    shared.showRoundWonMessagePaddle2 = false
+
 ------------------------------
 end
 
 function love.update(dt) 
     
+
+    
+    if(not shared.pause) then
     checkInputsPaddle1() -- checks for w and s inputs for player 1
     
     checkInputsPaddle2() -- checks for arrow key inputs for player 2
@@ -47,6 +53,10 @@ function love.update(dt)
 
     --score updating
     pointScored()
+    end
+
+    --pauses game if you press escape or the space bar
+    gamePaused()
   
 
 end
@@ -61,6 +71,15 @@ function love.draw()
     love.graphics.print(paddle1.score,30,30,0,1,1,10,10)
 
     love.graphics.print(paddle2.score,30,30,0,1,1,-745,10)
+
+    if(showRoundWonMessagePaddle1) then 
+        love.graphics.printf("Player 1 scored!,press p to continue",starting_position_x,starting_position_y + 10,100,"left")
+    end
+
+    if(showRoundWonMessagePaddle2) then
+        love.graphics.printf("Player 2 scored!,press p to continue",starting_position_x,starting_position_y + 10,100,"left")
+    end 
+
 end
 
 
@@ -143,13 +162,24 @@ end
 function pointScored() 
    if (ball.x == 0) then
       paddle2.score = paddle2.score + 1
+      ball.x = starting_position_x
+      ball.y = starting_position_y
+      shared.pause = not shared.pause
+      showRoundWonMessagePaddle2 = true
+
     elseif (ball.x == width) then
       paddle1.score = paddle1.score + 1
+      ball.x = starting_position_x
+      ball.y = starting_position_y
+      shared.pause = not shared.pause
+      showRoundWonMessagePaddle1 = true
    end
-
 end
 
-
-
-
-
+function gamePaused() -- can pause and unpause the game using spacebar and escape
+    if(love.keyboard.isDown("p")) then
+        shared.pause = not shared.pause
+        showRoundWonMessagePaddle1 = false
+        showRoundWonMessagePaddle2 = false
+    end
+end
